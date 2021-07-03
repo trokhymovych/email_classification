@@ -1,6 +1,7 @@
 import re
 import string
 
+from nltk.stem import WordNetLemmatizer
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -20,6 +21,8 @@ class TextFeatureExtractor:
         self.names = set([ln.replace("\n", "") for ln in lines])
 
         self.regex = re.compile('[%s]' % re.escape(string.punctuation))
+        self.lemm = WordNetLemmatizer()
+
 
     @staticmethod
     def remove_brackets(txt):
@@ -45,12 +48,12 @@ class TextFeatureExtractor:
             else:
                 bool_res.append(0)
 
-            res.append(text.lower())
+            res.append(' '.join([self.lemm.lemmatize(t, pos='a') for t in text.lower().split()]))
         return np.array(bool_res).reshape(-1, 1), np.array(res)
 
     def fit_tfidf_vectorization(self, texts: pd.Series):
         _, texts = self.replace_names_with_token(texts)
-        self.tf_idf_vectorizer = TfidfVectorizer(max_features=self.feature_num)
+        self.tf_idf_vectorizer = TfidfVectorizer(max_features=self.feature_num, ngram_range=(1, 2))
         self.tf_idf_vectorizer.fit(texts.astype(str))
 
     def text_starts_with_re(self, texts: pd.Series):
@@ -108,4 +111,3 @@ class TextFeatureExtractor:
 if __name__ == '__main__':
     text_feature_extractor = TextFeatureExtractor()
     print(text_feature_extractor)
-

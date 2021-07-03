@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import pandas as pd
 import numpy as np
 from sklearn import preprocessing
@@ -7,6 +5,7 @@ from sklearn import preprocessing
 from cat_encoders import CatEncoder
 from text_features_extractor import TextFeatureExtractor
 from mailbox_feature_extractor import MailBoxFeatures
+from time_features_extraction import TimeFeaturesExtractor
 
 
 class Preprocessor:
@@ -16,30 +15,11 @@ class Preprocessor:
         self.timezone_encoder = CatEncoder(preprocessing.OrdinalEncoder)
         self.text_extractor = TextFeatureExtractor(feature_num=500)
         self.mail_box_features = MailBoxFeatures()
-
-    @staticmethod
-    def extract_time(time_str: str):
-        if time_str in (None, 'none'):
-            return 0, 0, 0, 0, 0
-
-        dt = datetime.strptime(time_str, '%m/%d/%y %H:%M')
-        return dt.year, dt.month, dt.day, dt.hour, dt.minute
+        self.time_extractor = TimeFeaturesExtractor()
 
     @staticmethod
     def series_to_numpy(ser: pd.Series):
         return np.array(ser).reshape(-1, 1)
-
-    def process_datetime_series(self, dt: pd.Series):
-        years, months, days, hours, minutes = [], [], [], [], []
-        for s in dt:
-            year, month, day, hour, minute = self.extract_time(s)
-            years.append(int(year))
-            months.append(int(month))
-            days.append(int(day))
-            hours.append(int(hour))
-            minutes.append(int(minute))
-
-        return np.array([years, months, days, hours, minutes]).T
 
     def fit_encoders(self, data: pd.DataFrame):
         self.mail_box_encoder.fit(self.series_to_numpy(data.MailBoxID))
@@ -52,10 +32,11 @@ class Preprocessor:
         mailbox_encoded = self.mail_box_encoder(self.series_to_numpy(data.MailBoxID))
         contact_encoded = self.contact_encoder(self.series_to_numpy(data.ContactID))
         timezone_encoded = self.timezone_encoder(self.series_to_numpy(data.TimeZone))
-        time_matrix = self.process_datetime_series(data.SentOn)
+        time_matrix = self.time_extractor.process_datetime_series(data.SentOn)
+        aligned_time_matrix = self.time_extractor.process_aligned_datetime_series(data.SentOn, data.TimeZone)
         text_features = self.text_extractor(data.Subject)
         mailbox_features = self.mail_box_features.transform(data)
-        return np.array(np.hstack([mailbox_encoded, contact_encoded, time_matrix,
+        return np.array(np.hstack([mailbox_encoded, contact_encoded, time_matrix, aligned_time_matrix,
                                    timezone_encoded, text_features, mailbox_features]),
                         dtype=float)
 
