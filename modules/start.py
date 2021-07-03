@@ -5,7 +5,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.metrics import f1_score
 from sklearn.utils.class_weight import compute_class_weight
 from catboost import CatBoostClassifier, Pool
-from sklearn.ensemble import VotingClassifier
+from datetime import datetime
 
 import sys
 
@@ -70,7 +70,8 @@ for p, m in zip(processors, models):
 submission = pd.read_csv('../data/new/email_best_send_time_sample_submission.csv')
 submission['Opened'] = np.argmax(np.sum(preds_final, axis=0), axis=1)
 
-submission.to_csv('../submittions/submittion_1.csv', index=False)
+now = datetime.now()
+submission.to_csv(f'../submittions/submittion_{now.strftime("%d/%m.%H:%M:%S")}.csv', index=False)
 
 logging.info(f'Final prediction saved...')
 
