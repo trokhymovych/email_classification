@@ -10,7 +10,7 @@ from recommender_features import RecommenderFeatures
 
 
 class Preprocessor:
-    def __init__(self):
+    def __init__(self, text_feat_num: int = 500, text_feat_ngrams: tuple = (1, 2)):
         self.mail_box_encoder = CatEncoder(preprocessing.OrdinalEncoder)
         self.contact_encoder = CatEncoder(preprocessing.OrdinalEncoder)
         self.timezone_encoder = CatEncoder(preprocessing.OrdinalEncoder)
@@ -46,7 +46,7 @@ class Preprocessor:
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../data/email_best_send_time_train.csv')
+    df = pd.read_csv('../data/new/email_best_send_time_train.csv')
     df = df.fillna('none')
     print(df.head())
 

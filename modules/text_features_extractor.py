@@ -8,8 +8,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 class TextFeatureExtractor:
-    def __init__(self, feature_num: int = 500):
+    def __init__(self, feature_num: int = 500, ngram_strat: tuple = (1, 2)):
         self.feature_num = feature_num
+        self.ngram_strat = ngram_strat
+
         self.tf_idf_vectorizer = None
 
         with open('text_data_utils/popular_mail_subjects.txt', 'r') as f:
@@ -53,7 +55,7 @@ class TextFeatureExtractor:
 
     def fit_tfidf_vectorization(self, texts: pd.Series):
         _, texts = self.replace_names_with_token(texts)
-        self.tf_idf_vectorizer = TfidfVectorizer(max_features=self.feature_num, ngram_range=(1, 2))
+        self.tf_idf_vectorizer = TfidfVectorizer(max_features=self.feature_num, ngram_range=self.ngram_strat)
         self.tf_idf_vectorizer.fit(texts.astype(str))
 
     def text_starts_with_re(self, texts: pd.Series):
