@@ -44,7 +44,7 @@ for train_index, test_index in sss.split(train_new, train_new.Opened):
     classes = np.unique(y_train)
     weights = compute_class_weight(class_weight='balanced', classes=classes, y=y_train)
     class_weights = dict(zip(classes, weights))
-    model_clf = RandomForestClassifier()
+    model_clf = RandomForestClassifier(random_state=42)
 
     # Fit model
     model_clf.fit(X_train_transformed, y_train)
