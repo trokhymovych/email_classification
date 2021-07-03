@@ -5,6 +5,8 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.metrics import f1_score
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import RandomizedSearchCV
+
 from datetime import datetime
 
 import sys
@@ -44,10 +46,40 @@ for train_index, test_index in sss.split(train_new, train_new.Opened):
     classes = np.unique(y_train)
     weights = compute_class_weight(class_weight='balanced', classes=classes, y=y_train)
     class_weights = dict(zip(classes, weights))
-    model_clf = RandomForestClassifier(random_state=42)
 
-    # Fit model
-    model_clf.fit(X_train_transformed, y_train)
+    # Number of trees in random forest
+    n_estimators = [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)]
+    # Number of features to consider at every split
+    max_features = ['auto', 'sqrt']
+    # Maximum number of levels in tree
+    max_depth = [int(x) for x in np.linspace(3, 20, num = 10)]
+    max_depth.append(None)
+    # Minimum number of samples required to split a node
+    min_samples_split = [2, 5, 10]
+    # Minimum number of samples required at each leaf node
+    min_samples_leaf = [1, 2, 4]
+    # Method of selecting samples for training each tree
+    bootstrap = [True, False]
+    # Create the random grid
+    random_grid = {'n_estimators': n_estimators,
+                   'max_features': max_features,
+                   'max_depth': max_depth,
+                   'min_samples_split': min_samples_split,
+                   'min_samples_leaf': min_samples_leaf,
+                   'bootstrap': bootstrap}
+
+
+    model_clf = RandomForestClassifier(random_state=42)
+    rf_random = RandomizedSearchCV(estimator = model_clf, param_distributions = random_grid,
+                                   n_iter = 10, cv = 2, verbose=2, random_state=42, n_jobs = -1)
+
+    rf_random.fit(X_train_transformed, y_train)
+    best_random = rf_random.best_estimator_
+
+    model_clf = best_random
+
+# Fit model
+#     model_clf.fit(X_train_transformed, y_train)
     preds = model_clf.predict(np.nan_to_num(X_test_transformed))
     scores.append(f1_score(y_test, preds))
     models.append(model_clf)
