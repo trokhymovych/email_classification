@@ -71,7 +71,7 @@ submission = pd.read_csv('../data/new/email_best_send_time_sample_submission.csv
 submission['Opened'] = np.argmax(np.sum(preds_final, axis=0), axis=1)
 
 now = datetime.now()
-submission.to_csv(f'../submittions/submittion_{now.strftime("%d/%m.%H:%M:%S")}.csv', index=False)
+submission.to_csv(f'../submittions/submittion_{now.strftime("%d/%m.%H:%M:%S")}__{round(np.mean(scores)*10000)}.csv', index=False)
 
 logging.info(f'Final prediction saved...')
 
