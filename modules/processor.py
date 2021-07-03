@@ -9,7 +9,7 @@ from time_features_extraction import TimeFeaturesExtractor
 
 
 class Preprocessor:
-    def __init__(self):
+    def __init__(self, text_feat_num: int = 500, text_feat_ngrams: tuple = (1, 2)):
         self.mail_box_encoder = CatEncoder(preprocessing.OrdinalEncoder)
         self.contact_encoder = CatEncoder(preprocessing.OrdinalEncoder)
         self.timezone_encoder = CatEncoder(preprocessing.OrdinalEncoder)
@@ -36,13 +36,20 @@ class Preprocessor:
         aligned_time_matrix = self.time_extractor.process_aligned_datetime_series(data.SentOn, data.TimeZone)
         text_features = self.text_extractor(data.Subject)
         mailbox_features = self.mail_box_features.transform(data)
-        return np.array(np.hstack([mailbox_encoded, contact_encoded, time_matrix, aligned_time_matrix,
-                                   timezone_encoded, text_features, mailbox_features]),
+        return np.array(np.hstack([
+            mailbox_encoded,
+            contact_encoded,
+            time_matrix,
+            aligned_time_matrix,
+            timezone_encoded,
+            text_features,
+            mailbox_features
+        ]),
                         dtype=float)
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../data/email_best_send_time_train.csv')
+    df = pd.read_csv('../data/new/email_best_send_time_train.csv')
     df = df.fillna('none')
     print(df.head())
 

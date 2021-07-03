@@ -4,7 +4,7 @@ import logging
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.metrics import f1_score
 from sklearn.utils.class_weight import compute_class_weight
-from catboost import CatBoostClassifier, Pool
+from sklearn.ensemble import RandomForestClassifier
 from datetime import datetime
 
 import sys
@@ -35,7 +35,7 @@ for train_index, test_index in sss.split(train_new, train_new.Opened):
     y_train, y_test = train_new.Opened.loc[train_index], train_new.Opened.loc[test_index]
 
     # Data processing
-    p = Preprocessor()
+    p = Preprocessor(text_feat_num=100, text_feat_ngrams=(2, 3))
     p.fit_encoders(X_train)
     X_train_transformed = p.transform(X_train)
     X_test_transformed = p.transform(X_test)
@@ -44,14 +44,11 @@ for train_index, test_index in sss.split(train_new, train_new.Opened):
     classes = np.unique(y_train)
     weights = compute_class_weight(class_weight='balanced', classes=classes, y=y_train)
     class_weights = dict(zip(classes, weights))
-    model_clf = CatBoostClassifier(iterations=10,
-                                   custom_metric=['F1', 'AUC:hints=skip_train~false', 'Accuracy', 'Logloss'],
-                                   task_type="CPU", use_best_model=True,
-                                   class_weights=class_weights)
+    model_clf = RandomForestClassifier()
 
     # Fit model
-    model_clf.fit(X_train_transformed, y_train, eval_set=(X_test_transformed, y_test), plot=False, verbose=False)
-    preds = model_clf.predict(X_test_transformed)
+    model_clf.fit(X_train_transformed, y_train)
+    preds = model_clf.predict(np.nan_to_num(X_test_transformed))
     scores.append(f1_score(y_test, preds))
     models.append(model_clf)
     processors.append(p)
@@ -65,18 +62,12 @@ preds_final = []
 for p, m in zip(processors, models):
     logging.info(f'Model {len(preds_final)+1} is processing')
     X_test = p.transform(test_new)
-    preds_final.append(m.predict_proba(X_test))
+    preds_final.append(m.predict_proba(np.nan_to_num(X_test)))
 
 submission = pd.read_csv('../data/new/email_best_send_time_sample_submission.csv')
 submission['Opened'] = np.argmax(np.sum(preds_final, axis=0), axis=1)
 
 now = datetime.now()
-submission.to_csv(f'../submittions/submittion_{now.strftime("%d_%m_%H_%M_%S")}__{round(np.mean(scores)*10000)}.csv', index=False)
+submission.to_csv(f'../submittions/submission_SK_{now.strftime("%d_%m_%H:%M:%S")}__{round(np.mean(scores)*10000)}.csv', index=False)
 
 logging.info(f'Final prediction saved...')
-
-
-
-
-
-
