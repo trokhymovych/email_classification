@@ -48,6 +48,9 @@ for train_index, test_index in sss.split(train_new, train_new.Opened):
 
     # Fit model
     model_clf.fit(X_train_transformed, y_train)
+    weights = (1 - np.abs(np.diff(model_clf.predict_proba(X_train_transformed), axis=1)).reshape(-1))
+    model_clf.fit(X_train_transformed, y_train, sample_weight=weights)
+
     preds = model_clf.predict(np.nan_to_num(X_test_transformed))
     scores.append(f1_score(y_test, preds))
     models.append(model_clf)
