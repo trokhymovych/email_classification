@@ -9,16 +9,17 @@ class TimeFeaturesExtractor:
         pass
 
     def process_datetime_series(self, dt: pd.Series):
-        years, months, days, hours, minutes = [], [], [], [], []
+        years, months, days, hours, minutes, weekdays = [], [], [], [], [], []
         for s in dt:
-            year, month, day, hour, minute = self.extract_time(s)
+            year, month, day, hour, minute, weekday = self.extract_time(s)
             years.append(int(year))
             months.append(int(month))
             days.append(int(day))
             hours.append(int(hour))
             minutes.append(int(minute))
+            weekdays.append(int(weekday))
 
-        return np.array([years, months, days, hours, minutes]).T
+        return np.array([weekdays, years, months, days, hours, minutes]).T
 
     @staticmethod
     def process_aligned_datetime_series(dt: pd.Series, tz: pd.Series):
@@ -51,7 +52,7 @@ class TimeFeaturesExtractor:
     @staticmethod
     def extract_time(time_str: str):
         if time_str in (None, 'none'):
-            return 0, 0, 0, 0, 0
+            return 0, 0, 0, 0, 0, 0
 
         dt = datetime.strptime(time_str, '%m/%d/%y %H:%M')
-        return dt.year, dt.month, dt.day, dt.hour, dt.minute
+        return dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.weekday()

@@ -7,6 +7,8 @@ from text_features_extractor import TextFeatureExtractor
 from mailbox_feature_extractor import MailBoxFeatures
 from time_features_extraction import TimeFeaturesExtractor
 from recommender_features import RecommenderFeatures
+from timezone_feature_extractor import TimeZoneFeatures
+from contact_feature_extractor import ClientFeatures
 
 
 class Preprocessor:
@@ -18,6 +20,8 @@ class Preprocessor:
         self.mail_box_features = MailBoxFeatures()
         self.time_extractor = TimeFeaturesExtractor()
         self.recommender_extractor = RecommenderFeatures()
+        self.timezone_features = TimeZoneFeatures()
+        self.client_feature = ClientFeatures()
 
     @staticmethod
     def series_to_numpy(ser: pd.Series):
@@ -30,6 +34,8 @@ class Preprocessor:
         self.text_extractor.fit_tfidf_vectorization(data.Subject)
         self.mail_box_features.fit(data)
         self.recommender_extractor.fit(data)
+        self.timezone_features.fit(data)
+        self.client_feature.fit(data)
 
     def transform(self, data):
         mailbox_encoded = self.mail_box_encoder(self.series_to_numpy(data.MailBoxID))
@@ -40,8 +46,11 @@ class Preprocessor:
         text_features = self.text_extractor(data.Subject)
         mailbox_features = self.mail_box_features.transform(data)
         recommender_features = self.recommender_extractor.transform(data)
+        timezone_features = self.timezone_features.transform(data)
+        client_feature = self.client_feature.transform(data)
         return np.array(np.hstack([mailbox_encoded, contact_encoded, time_matrix, aligned_time_matrix,
-                                   timezone_encoded, text_features, mailbox_features, recommender_features]),
+                                   timezone_encoded, text_features, mailbox_features, recommender_features,
+                                   timezone_features, client_feature]),
                         dtype=float)
 
 

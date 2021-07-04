@@ -14,11 +14,11 @@ class TextFeatureExtractor:
 
         self.tf_idf_vectorizer = None
 
-        with open('text_data_utils/popular_mail_subjects.txt', 'r') as f:
+        with open('/Users/ntr/Documents/emailsendtime/modules/text_data_utils/popular_mail_subjects.txt', 'r') as f:
             lines = f.readlines()
         self.popular_subjects = [ln.replace("\n", "") for ln in lines]
 
-        with open('text_data_utils/names.txt', 'r') as f:
+        with open('/Users/ntr/Documents/emailsendtime/modules/text_data_utils/popular_mail_subjects.txt', 'r') as f:
             lines = f.readlines()
         self.names = set([ln.replace("\n", "") for ln in lines])
 
@@ -37,7 +37,7 @@ class TextFeatureExtractor:
     def remove_punctuation(self, s):
         return self.regex.sub('', s)
 
-    def replace_names_with_token(self, texts: pd.Series, token: str = 'name'):
+    def replace_names_with_token(self, texts: pd.Series, token: str = 'NAME'):
         bool_res = []
         res = []
         for text in texts:
@@ -55,7 +55,10 @@ class TextFeatureExtractor:
 
     def fit_tfidf_vectorization(self, texts: pd.Series):
         _, texts = self.replace_names_with_token(texts)
-        self.tf_idf_vectorizer = TfidfVectorizer(max_features=self.feature_num, ngram_range=self.ngram_strat)
+        self.tf_idf_vectorizer = TfidfVectorizer(max_features=self.feature_num,
+                                                 ngram_range=self.ngram_strat,
+                                                 lowercase=False,
+                                                 max_df=0.6)
         self.tf_idf_vectorizer.fit(texts.astype(str))
 
     def text_starts_with_re(self, texts: pd.Series):
@@ -94,7 +97,7 @@ class TextFeatureExtractor:
 
         text_features = [text_is_reply, ]
 
-        for pattern in ('Hi.*!', 'RE: Hi.*!', '.*[?].*'):
+        for pattern in ('Hi.*!', 'RE: Hi.*!', '.*[?].*', 'Webnar:.*'):
             text_features.append(self.text_contains_pattern(texts, pattern))
 
         # WARNING: exact match needed - all preprocessing afterwards!
@@ -106,6 +109,11 @@ class TextFeatureExtractor:
         vectorized_texts = self.tf_idf_vectorizer.transform(updated_texts.astype(str)).todense()
         text_features.append(contains_name)
         text_features.append(vectorized_texts)
+        text_features.append(texts.apply(lambda x: 'NAME' in x).values.reshape(-1, 1))
+        text_features.append(texts.apply(lambda x: '\xa0' in x).values.reshape(-1, 1))
+        text_features.append((texts.apply(lambda x: 'RevenueGrid' in x) + texts.apply(lambda x: 'Revenue Grid' in x)).values.reshape(-1, 1))
+        text_features.append(texts.apply(lambda x: 'Salesforce' in x).values.reshape(-1, 1))
+        text_features.append(texts.apply(len).values.reshape(-1, 1))
 
         return np.array(np.hstack(text_features), dtype=float)
 
