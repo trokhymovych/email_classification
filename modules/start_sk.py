@@ -15,8 +15,8 @@ from processor import Preprocessor
 logging.basicConfig(level=logging.INFO)
 logging.info('Loading data files ...')
 
-train_new = pd.read_csv('../data/new/email_best_send_time_train.csv')
-test_new = pd.read_csv('../data/new/email_best_send_time_test.csv')
+train_new = pd.read_csv('../data/new/email_best_send_time_train_upd.csv')
+test_new = pd.read_csv('../data/new/email_best_send_time_test_upd.csv')
 
 train_new = train_new.fillna('none')
 test_new = test_new.fillna('none')

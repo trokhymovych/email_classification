@@ -9,6 +9,7 @@ from time_features_extraction import TimeFeaturesExtractor
 from recommender_features import RecommenderFeatures
 from timezone_feature_extractor import TimeZoneFeatures
 from contact_feature_extractor import ClientFeatures
+from hacker_features import HackerFeatures
 
 
 class Preprocessor:
@@ -22,6 +23,7 @@ class Preprocessor:
         self.recommender_extractor = RecommenderFeatures()
         self.timezone_features = TimeZoneFeatures()
         self.client_feature = ClientFeatures()
+        self.hacker_features = HackerFeatures()
 
     @staticmethod
     def series_to_numpy(ser: pd.Series):
@@ -48,9 +50,10 @@ class Preprocessor:
         recommender_features = self.recommender_extractor.transform(data)
         timezone_features = self.timezone_features.transform(data)
         client_feature = self.client_feature.transform(data)
+        hacker_features = self.hacker_features.transform(data)
         return np.array(np.hstack([mailbox_encoded, contact_encoded, time_matrix, aligned_time_matrix,
                                    timezone_encoded, text_features, mailbox_features, recommender_features,
-                                   timezone_features, client_feature]),
+                                   timezone_features, client_feature, hacker_features]),
                         dtype=float)
 
 
