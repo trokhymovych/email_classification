@@ -4,8 +4,11 @@ import logging
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.metrics import f1_score
 from sklearn.utils.class_weight import compute_class_weight
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import (RandomForestClassifier, ExtraTreesClassifier)
+from sklearn.naive_bayes import GaussianNB
 from datetime import datetime
+
+from train_set_cleaner import clean_train_set
 
 import sys
 
@@ -17,6 +20,8 @@ logging.info('Loading data files ...')
 
 train_new = pd.read_csv('../data/new/email_best_send_time_train.csv')
 test_new = pd.read_csv('../data/new/email_best_send_time_test.csv')
+
+# train_new = clean_train_set(train_new, test_new)
 
 train_new = train_new.fillna('none')
 test_new = test_new.fillna('none')
@@ -45,6 +50,8 @@ for train_index, test_index in sss.split(train_new, train_new.Opened):
     weights = compute_class_weight(class_weight='balanced', classes=classes, y=y_train)
     class_weights = dict(zip(classes, weights))
     model_clf = RandomForestClassifier(random_state=42)
+    # model_clf = ExtraTreesClassifier(random_state=42)
+    # model_clf = GaussianNB()
 
     # Fit model
     model_clf.fit(X_train_transformed, y_train)

@@ -14,7 +14,7 @@ class Preprocessor:
         self.mail_box_encoder = CatEncoder(preprocessing.OrdinalEncoder)
         self.contact_encoder = CatEncoder(preprocessing.OrdinalEncoder)
         self.timezone_encoder = CatEncoder(preprocessing.OrdinalEncoder)
-        self.text_extractor = TextFeatureExtractor(feature_num=500)
+        self.text_extractor = TextFeatureExtractor(feature_num=text_feat_num, ngram_strat=text_feat_ngrams)
         self.mail_box_features = MailBoxFeatures()
         self.time_extractor = TimeFeaturesExtractor()
         self.recommender_extractor = RecommenderFeatures()
@@ -40,8 +40,16 @@ class Preprocessor:
         text_features = self.text_extractor(data.Subject)
         mailbox_features = self.mail_box_features.transform(data)
         recommender_features = self.recommender_extractor.transform(data)
-        return np.array(np.hstack([mailbox_encoded, contact_encoded, time_matrix, aligned_time_matrix,
-                                   timezone_encoded, text_features, mailbox_features, recommender_features]),
+        return np.array(np.hstack([
+            mailbox_encoded,
+            contact_encoded,
+            time_matrix,
+            aligned_time_matrix,
+            timezone_encoded,
+            text_features,
+            mailbox_features,
+            recommender_features
+        ]),
                         dtype=float)
 
 
